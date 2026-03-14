@@ -155,7 +155,7 @@
 </div>
 
 <div class="card">
-  <h2>Resumo do jogo</h2>
+  <h2>Resumo final do jogo</h2>
   <div class="summary-grid">
     <div class="summary-box"><div class="small">Golos marcados</div><div id="sumGoalsFor" class="big">0</div></div>
     <div class="summary-box"><div class="small">Golos sofridos</div><div id="sumGoalsAgainst" class="big">0</div></div>
@@ -187,6 +187,10 @@
 <div class="card">
   <div class="row">
     <button id="exportBtn" class="btn" type="button">Exportar Eventos CSV</button>
+    <button id="saveGameBtn" class="btn green" type="button">Guardar jogo</button>
+    <button id="loadGameBtn" class="btn gray" type="button">Abrir jogo</button>
+    <input type="file" id="loadGameFile" accept=".json" style="display:none">
+    
     <div class="muted" style="margin-left:8px">Eventos: <span id="queueCount">0</span></div>
   </div>
 
@@ -1167,6 +1171,67 @@ document.getElementById('closeLegend').addEventListener('click', closeLegend);
     renderCharts();
   }, 1000);
 })();
+
+// GUARDAR JOGO
+document.getElementById('saveGameBtn').addEventListener('click', () => {
+
+  const data = {
+    session: session,
+    roster: ROSTER,
+    events: queue,
+    onField: onField
+  };
+
+  const json = JSON.stringify(data, null, 2);
+
+  const blob = new Blob([json], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "futsal_game_backup.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+});
+
+
+// ABRIR JOGO
+document.getElementById('loadGameBtn').addEventListener('click', () => {
+  document.getElementById('loadGameFile').click();
+});
+
+document.getElementById('loadGameFile').addEventListener('change', (e) => {
+
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function(event){
+
+    try{
+
+      const data = JSON.parse(event.target.result);
+
+      session = data.session || {};
+      ROSTER = data.roster || [];
+      queue = data.events || [];
+      onField = data.onField || [null,null,null,null,null];
+
+      saveAll();
+
+      alert("Jogo carregado com sucesso");
+
+    }catch(err){
+      alert("Erro ao abrir ficheiro");
+    }
+
+  };
+
+  reader.readAsText(file);
+
+});
 </script>
 </body>
 </html>
